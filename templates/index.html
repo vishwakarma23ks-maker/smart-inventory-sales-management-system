@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartStock - Smart Inventory & Sales Management System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <img src="{{ url_for('static', filename='assets/images/logo.png') }}" alt="SmartStock Logo" class="brand-logo">
+        <span class="brand-name">SmartStock</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#about">About</a>
+        <a href="/login" class="btn btn-outline">Login</a>
+        <a href="/dashboard" class="btn btn-primary">Open Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Manage Your Inventory. Simplify Your Sales.</h1>
+        <p>Smart Inventory & Sales Management System helps businesses track stock, manage products, record sales, and understand their business through simple and reliable tools.</p>
+        <div class="hero-actions">
+          <a href="/dashboard" class="btn btn-primary btn-large">Get Started</a>
+          <a href="#features" class="btn btn-secondary btn-large">Explore Features</a>
+        </div>
+      </div>
+      <div class="hero-preview">
+        <div class="card preview-card">
+          <h3>Quick Overview</h3>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <span class="metric-label">Products</span>
+              <span class="metric-value">1,248</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label">Total Stock</span>
+              <span class="metric-value">8,420</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label">Today's Sales</span>
+              <span class="metric-value">₹24,850</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label">Low Stock</span>
+              <span class="metric-value warning">18</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="landing-section feature-section">
+      <div class="landing-section-heading">
+        <p class="eyebrow">Inventory at a glance</p>
+        <h2>Know what you have. Know what needs attention.</h2>
+      </div>
+      <div class="feature-list">
+        <article class="feature-item">
+          <span class="feature-number">01</span>
+          <h3>Product records</h3>
+          <p>Keep product names, categories, prices, suppliers, and quantities together in one catalog.</p>
+        </article>
+        <article class="feature-item">
+          <span class="feature-number">02</span>
+          <h3>Stock monitoring</h3>
+          <p>See current stock levels and quickly spot products at or below their minimum quantity.</p>
+        </article>
+        <article class="feature-item">
+          <span class="feature-number">03</span>
+          <h3>Stock history</h3>
+          <p>Record stock coming in or going out, with a date, quantity, and note for each update.</p>
+        </article>
+      </div>
+      <a href="/dashboard#products" class="text-link">View the product catalog <span aria-hidden="true">&rarr;</span></a>
+    </section>
+
+    <section id="how-it-works" class="landing-section workflow-section">
+      <div class="landing-section-heading">
+        <p class="eyebrow">A simple routine</p>
+        <h2>From first item to every stock update.</h2>
+      </div>
+      <ol class="workflow-list">
+        <li><span>1</span><div><h3>Add your products</h3><p>Enter the product, category, prices, supplier, and starting quantity.</p></div></li>
+        <li><span>2</span><div><h3>Record stock changes</h3><p>Choose stock in or stock out, enter the quantity, and add a note.</p></div></li>
+        <li><span>3</span><div><h3>Review your dashboard</h3><p>Check your catalog, low-stock items, and recent stock activity.</p></div></li>
+      </ol>
+      <a href="/dashboard" class="btn btn-primary">Open Dashboard</a>
+    </section>
+
+    <section id="about" class="landing-section about-section">
+      <div class="about-copy">
+        <p class="eyebrow">About SmartStock</p>
+        <h2>Built for clear, practical stock keeping.</h2>
+        <p>SmartStock is a straightforward inventory and sales management tool for keeping everyday business records organized. Product details, current quantities, and stock movements are stored together so you can return to the latest information whenever you need it.</p>
+      </div>
+      <a href="/login" class="text-link">Sign in to manage your inventory <span aria-hidden="true">&rarr;</span></a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 SmartStock System. Simple, fast and easy to use.</p>
+  </footer>
+</body>
+</html>

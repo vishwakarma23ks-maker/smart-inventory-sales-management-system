@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - SmartStock</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dashboard-body">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="{{ url_for('static', filename='assets/images/logo.png') }}" alt="Logo" class="sidebar-logo">
+      <span>SmartStock</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="active">Home</a>
+      <a href="#products">Dashboard</a>
+      <a href="#products">Products</a>
+      <a href="#inventory">Inventory</a>
+      <a href="#sales">Sales</a>
+      <a href="#customers">Customers</a>
+      <a href="/logout" class="logout-link">Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <h2>Welcome back, {{ user_name }}</h2>
+      <div class="user-pill">{{ user_name }} (Admin)</div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-list">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="management-panel">
+      <div class="form-panel">
+        <div class="section-header compact-header">
+          <h3>Add Inventory Item</h3>
+        </div>
+        <form method="POST" action="/dashboard" class="inventory-form">
+          <input type="hidden" name="action" value="add_product">
+          <div class="form-grid">
+            <div class="form-group wide">
+              <label>Product Name</label>
+              <input type="text" name="name" placeholder="e.g. USB Cable" required>
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <input type="text" name="category" placeholder="Accessories" required>
+            </div>
+            <div class="form-group">
+              <label>Supplier</label>
+              <input type="text" name="supplier" placeholder="Local Supplier">
+            </div>
+            <div class="form-group">
+              <label>Purchase Price</label>
+              <input type="number" name="purchase_price" step="0.01" value="0">
+            </div>
+            <div class="form-group">
+              <label>Selling Price</label>
+              <input type="number" name="selling_price" step="0.01" value="0">
+            </div>
+            <div class="form-group">
+              <label>Stock Quantity</label>
+              <input type="number" name="stock_quantity" min="0" value="0" required>
+            </div>
+            <div class="form-group">
+              <label>Minimum Stock</label>
+              <input type="number" name="minimum_stock" min="0" value="0">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Inventory Detail</button>
+        </form>
+      </div>
+
+      <div class="form-panel">
+        <div class="section-header compact-header">
+          <h3>Update Stock</h3>
+        </div>
+        <form method="POST" action="/dashboard" class="inventory-form">
+          <input type="hidden" name="action" value="update_stock">
+          <div class="form-grid">
+            <div class="form-group wide">
+              <label>Product</label>
+              <select name="product_id" required>
+                <option value="">Select product</option>
+                {% for product in products %}
+                  <option value="{{ product.id }}">{{ product.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Movement</label>
+              <select name="movement_type">
+                <option value="stock_in">Stock In</option>
+                <option value="stock_out">Stock Out</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantity</label>
+              <input type="number" name="quantity" min="1" value="1" required>
+            </div>
+            <div class="form-group wide">
+              <label>Note</label>
+              <input type="text" name="note" placeholder="Received stock / sold item / adjustment">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-secondary">Update Stock</button>
+        </form>
+      </div>
+
+      <div class="form-panel">
+        <div class="section-header compact-header">
+          <h3>Make Sale</h3>
+        </div>
+        <form method="POST" action="/dashboard/sale" class="inventory-form" id="sale-form">
+          <div class="form-grid">
+            <div class="form-group wide">
+              <label>Product</label>
+              <select name="product_id" id="sale-product" required>
+                <option value="">Select product</option>
+                {% for product in products %}
+                  <option value="{{ product.id }}" data-price="{{ product.selling_price }}">{{ product.name }} (₹{{ product.selling_price }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Customer</label>
+              <select name="customer_id" id="sale-customer" required>
+                <option value="">Select customer</option>
+                {% for customer in customers %}
+                  <option value="{{ customer.id }}">{{ customer.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantity</label>
+              <input type="number" name="quantity" id="sale-qty" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select name="payment_method">
+                <option value="UPI">UPI</option>
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+                <option value="Net Banking">Net Banking</option>
+              </select>
+            </div>
+            <div class="form-group wide">
+              <label>Note (optional)</label>
+              <input type="text" name="note" placeholder="e.g. Walk-in customer, gift wrap, etc.">
+            </div>
+          </div>
+          <div class="sale-total" id="sale-total">Total: ₹0.00</div>
+          <button type="submit" class="btn btn-primary btn-block">Make Sale</button>
+        </form>
+      </div>
+
+      <div class="form-panel">
+        <div class="section-header compact-header">
+          <h3>Add Customer</h3>
+        </div>
+        <form method="POST" action="/dashboard/customer" class="inventory-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Customer Name</label>
+              <input type="text" name="name" placeholder="e.g. John Doe" required>
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="text" name="phone" placeholder="e.g. +91 98765 43210" required>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" name="email" placeholder="john@example.com">
+            </div>
+            <div class="form-group wide">
+              <label>Address</label>
+              <input type="text" name="address" placeholder="Delivery address (optional)">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Save Customer</button>
+        </form>
+      </div>
+    </section>
+
+    <div class="dashboard-grid">
+      <div class="stat-card">
+        <h4>Total Products</h4>
+        <div class="stat-num">{{ products|length }}</div>
+      </div>
+      <div class="stat-card">
+        <h4>Total Stock</h4>
+        <div class="stat-num">{{ total_stock }}</div>
+      </div>
+      <div class="stat-card">
+        <h4>Low Stock Items</h4>
+        <div class="stat-num warning">{{ low_stock|length }}</div>
+      </div>
+    </div>
+
+    <section id="products" class="content-section">
+      <div class="section-header">
+        <h3>Product Catalog</h3>
+        <span class="section-tag">{{ products|length }} items</span>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Number</th>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in products %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ product.name }}</strong></td>
+            <td>₹{{ product.selling_price }}</td>
+            <td>{{ product.stock_quantity }}</td>
+            <td><span class="badge {{ product.status|lower|replace(' ', '-') }}">{{ product.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section id="stock-activity" class="content-section">
+      <div class="section-header">
+        <h3>Stock Activity</h3>
+        <span class="section-tag">Recent entries</span>
+      </div>
+      <table class="data-table compact-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Product</th>
+            <th>Type</th>
+            <th>Qty</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in inventory_logs %}
+          <tr>
+            <td>{{ record.created_at.strftime('%d %b %Y') }}</td>
+            <td>{{ record.product.name if record.product else 'Unknown' }}</td>
+            <td>{{ 'Stock In' if record.movement_type == 'stock_in' else 'Stock Out' }}</td>
+            <td>{{ record.quantity }}</td>
+            <td>{{ record.note or 'No note' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5">No stock activity yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section id="inventory" class="content-section">
+      <div class="section-header">
+        <h3>Inventory Overview</h3>
+        <span class="section-tag">{{ low_stock|length }} low stock</span>
+      </div>
+      <div class="mini-grid">
+        {% for product in low_stock[:4] %}
+        <div class="mini-card">
+          <span class="mini-label">{{ product.name }}</span>
+          <strong>{{ product.stock_quantity }}</strong>
+          <small>items left</small>
+        </div>
+        {% else %}
+        <div class="mini-card full-width">
+          <span class="mini-label">Inventory Status</span>
+          <strong>All products are stocked well.</strong>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+  
+
+    <section id="sales" class="content-section">
+      <div class="section-header">
+        <h3>Sales Records</h3>
+        <span class="section-tag">{{ sales|length }} invoices</span>
+      </div>
+      <table class="data-table compact-table">
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sale in sales %}
+          <tr>
+            <td><strong>{{ sale.invoice_number }}</strong></td>
+            <td>{{ sale.customer.name if sale.customer else 'Unknown' }}</td>
+            <td>{{ sale.product.name if sale.product else '—' }}</td>
+            <td>{{ sale.quantity if sale.quantity else '—' }}</td>
+            <td>₹{{ "%.2f"|format(sale.total_amount) }}</td>
+            <td>{{ sale.payment_method }}</td>
+            <td><span class="badge in-stock">{{ sale.status }}</span></td>
+            <td>{{ sale.sale_date.strftime('%d %b %Y') if sale.sale_date else '—' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8">No sales recorded yet. Use the Make Sale panel to create your first invoice.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section id="customers" class="content-section">
+      <div class="section-header">
+        <h3>Customers</h3>
+        <span class="section-tag">{{ customers|length }} active</span>
+      </div>
+      <table class="data-table compact-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for customer in customers %}
+          <tr>
+            <td>{{ customer.name }}</td>
+            <td>{{ customer.phone }}</td>
+            <td>{{ customer.email or 'N/A' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="3">No customers available.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var productSel = document.getElementById('sale-product');
+      var qtyInput = document.getElementById('sale-qty');
+      var totalEl = document.getElementById('sale-total');
+
+      function updateTotal() {
+        if (!productSel || !productSel.selectedOptions.length) {
+          totalEl.textContent = 'Total: ₹0.00';
+          return;
+        }
+        var price = parseFloat(productSel.selectedOptions[0].dataset.price || '0');
+        var qty = parseInt(qtyInput.value || '0', 10) || 0;
+        var subtotal = price * qty;
+        var tax = subtotal * 0.18;
+        totalEl.textContent = 'Total: ₹' + (subtotal + tax).toFixed(2);
+      }
+
+      if (productSel) productSel.addEventListener('change', updateTotal);
+      if (qtyInput) qtyInput.addEventListener('input', updateTotal);
+    })();
+  </script>
+</body>
+</html>
