@@ -20,9 +20,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'smartstock_secret_key_2026')
 # Prefer a local SQLite database by default so the project runs without a MySQL server.
 # If DATABASE_URL is set explicitly, it will override this default.
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-    'DATABASE_URL',
-    f'sqlite:///{DB_PATH}'
+# DATABASE_URL from env overrides the local SQLite default.
+# On Render, set this in the dashboard (SQLite path works there too); leave it
+# empty to keep using the local smartstock.db file.
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    os.environ.get('DATABASE_URL') or f'sqlite:///{DB_PATH}'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -464,6 +466,34 @@ def create_sale():
 
     return jsonify({'success': True, 'invoice_number': sale.invoice_number, 'total': total})
 
+
+# ============================================================================
+# STARTUP INITIALIZATION
+# ============================================================================
+
+
+def init_db():
+    """Create database tables and seed default data.
+
+    This is safe to run on every startup:
+    - db.create_all() creates missing tables (idempotent).
+    - migrate_columns() adds columns only when needed (idempotent).
+    - seed_data() skips inserting if data already exists (idempotent).
+
+    It runs whether the app is started locally with `python app.py` or by
+    gunicorn on Render. For gunicorn, this runs once at process import.
+    """
+    with app.app_context():
+        db.create_all()
+        migrate_columns()
+        seed_data()
+
+
+# Initialize the database at import time, ensuring tables exist and the demo
+# data is present before any request is processed.
+# This makes the app work out-of-the-box for both local runs and Render.
+init_db()
+
+
 if __name__ == '__main__':
-    seed_data()
     app.run(debug=True, port=5000)
